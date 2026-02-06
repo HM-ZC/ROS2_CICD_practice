@@ -16,6 +16,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
+      attestations: write
+      actions: read
     # 所有步骤默认用bashshell，ROS2命令兼容
     defaults:
       run:
