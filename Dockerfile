@@ -35,7 +35,6 @@ COPY src/ ./src/
 # 步骤3：编译ROS2工作空间（Release模式，保留symlink-install优化）
 # 必须用/bin/bash -c包裹，确保source生效
 RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
-    ament_init_build && \
     colcon build \
     --cmake-args -DCMAKE_BUILD_TYPE=Release \
     --symlink-install"
