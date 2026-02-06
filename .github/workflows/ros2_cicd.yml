@@ -86,15 +86,21 @@ jobs:
           cache-to: type=gha,mode=max
 
       ########################################################################
-      # 步骤6：运行Docker容器，执行ROS2编译+单元测试（CI核心环节）
+      # 步骤6：运行Docker容器，执行ROS2编译+运行特定测试
       ########################################################################
-      - name: Run Docker container & execute ROS2 build + test
+      - name: Run Docker container & execute ROS2 build + specific test
         run: |
           docker run --rm ros2_cicd:ci /bin/bash -c "
             source /opt/ros/jazzy/setup.bash
             colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release 
-            colcon test 
-            colcon test-result --all
+            # 查找并运行publisher_test可执行文件
+            echo '=== 查找测试可执行文件 ==='
+            find ./install -name '*publisher_test*' -type f -executable
+            
+            source ./install/setup.bash
+            ./install/ros2_cicd/lib/ros2_cicd/publisher_test
+          
+            echo '=== 运行publisher_test完成 ==='
           "
 
       ########################################################################

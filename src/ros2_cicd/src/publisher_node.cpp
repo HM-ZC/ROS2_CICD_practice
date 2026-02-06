@@ -24,12 +24,3 @@ void PublisherNode::timer_callback()
 }
 
 }  // namespace ros2_cicd_demo
-
-// 节点主函数
-int main(int argc, char * argv[])
-{
-  rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<ros2_cicd_demo::PublisherNode>());
-  rclcpp::shutdown();
-  return 0;
-}
