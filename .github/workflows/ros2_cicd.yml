@@ -44,6 +44,7 @@ jobs:
       # 步骤3：登录GHCR（GitHub容器仓库）——PR时不登录（无需推送镜像）
       ########################################################################
       - name: Login to GitHub Container Registry (GHCR)
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io  # GHCR固定域名
