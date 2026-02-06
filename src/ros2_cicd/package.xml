@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>ros2_cicd</name>
+  <version>0.0.1</version>
+  <description>ROS2 CICD Demo with GitHub Action and Docker</description>
+  <maintainer email="your-email@example.com">your-name</maintainer>
+  <license>Apache-2.0</license>
+
+  <!-- ROS2核心依赖 -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+
+  <!-- 编译依赖 -->
+  <build_depend>ament_cmake_gtest</build_depend>
+  <build_depend>ament_lint_auto</build_depend>
+  <build_depend>ament_lint_common</build_depend>
+
+  <!-- 测试依赖 -->
+  <test_depend>ament_cmake_gtest</test_depend>
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

@@ -1,0 +1,115 @@
+# Workflow名称：GitHub Action页面显示
+name: ROS2 Jazzy CI/CD with Docker & GHCR
+
+# 触发条件：main分支push、所有PR到main、打v*标签（如v1.0、v0.1）
+on:
+  push:
+    branches: [main]
+    tags: [v*]
+  pull_request:
+    branches: [main]
+
+# 工作流任务：仅在Ubuntu24.04运行（ROS2 Jazzy强绑定）
+jobs:
+  build-test-push:
+    runs-on: ubuntu-24.04
+    # 所有步骤默认用bashshell，ROS2命令兼容
+    defaults:
+      run:
+        shell: bash
+    # 步骤失败立即终止，不执行后续流程
+    continue-on-error: false
+    steps:
+      ########################################################################
+      # 步骤1：检出GitHub仓库代码（官方Action，必选）
+      ########################################################################
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1  # 浅克隆，仅拉取最新代码，加速CI
+
+      ########################################################################
+      # 步骤2：配置Docker Buildx（官方Action，加速构建，支持缓存）
+      ########################################################################
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      ########################################################################
+      # 步骤3：登录GHCR（GitHub容器仓库）——PR时不登录（无需推送镜像）
+      ########################################################################
+      - name: Login to GitHub Container Registry (GHCR)
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io  # GHCR固定域名
+          username: ${{ github.actor }}  # 你的GitHub用户名（自动获取）
+          password: ${{ secrets.GITHUB_TOKEN }}  # GitHub自动生成，无需手动配置
+
+      ########################################################################
+      # 步骤4：生成Docker镜像标签（动态生成，版本可追溯）
+      ########################################################################
+      - name: Generate Docker image tags & labels
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # 镜像名：ghcr.io/[GitHub用户名]/[项目名]（替换为你的项目名，小写！）
+          images: ghcr.io/${{ github.actor }}/ros2_cicd
+          # 标签规则：Tag事件用标签名、Push用分支名+短CommitID、默认latest
+          tags: |
+            type=ref,event=tag
+            type=ref,event=branch
+            type=sha,format=short,prefix=commit-
+            latest
+          # 生成镜像标签（如作者、版本、提交ID）
+          labels: |
+            org.opencontainers.image.authors=${{ github.actor }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
+
+      ########################################################################
+      # 步骤5：构建Docker镜像（先不推送，跑测试后再推）
+      ########################################################################
+      - name: Build Docker image (cache enabled)
+        uses: docker/build-push-action@v5
+        with:
+          context: .  # 构建上下文为项目根目录
+          file: ./Dockerfile  # Dockerfile路径
+          push: false  # 先不推送
+          tags: ${{ steps.meta.outputs.tags }}  # 引用步骤4的动态标签
+          labels: ${{ steps.meta.outputs.labels }}  # 引用步骤4的标签
+          # 核心优化：利用GitHub Action缓存Docker构建层，后续构建加速
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      ########################################################################
+      # 步骤6：运行Docker容器，执行ROS2编译+单元测试（CI核心环节）
+      ########################################################################
+      - name: Run Docker container & execute ROS2 build + test
+        run: |
+          # 启动容器，--rm：运行完成后自动删除容器，执行ROS2全套测试命令
+          docker run --rm ${{ steps.meta.outputs.tags }} /bin/bash -c "
+            # 加载ROS2环境
+            source /colcon_ws/install/setup.bash && \
+            # 重新编译（验证编译无问题）
+            colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release && \
+            # 执行所有单元测试
+            colcon test --verbose && \
+            # 生成测试报告，无失败则继续，有失败则终止
+            colcon test-result --verbose --all
+          "
+
+      ########################################################################
+      # 步骤7：测试通过后，推送镜像到GHCR（PR时不执行，push/Tag执行）
+      ########################################################################
+      - name: Push Docker image to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true  # 开启推送
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # 复用缓存，加速推送
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
