@@ -49,7 +49,7 @@ jobs:
         with:
           registry: ghcr.io  # GHCR固定域名
           username: ${{ github.actor }}  # 你的GitHub用户名（自动获取）
-          password: ${{ secrets.GITHUB_TOKEN }}  # GitHub自动生成，无需手动配置
+          password: ${{ secrets.ABC }}  
 
       ########################################################################
       # 步骤4：生成Docker镜像标签（动态生成，版本可追溯）
