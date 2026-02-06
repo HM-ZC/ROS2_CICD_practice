@@ -23,9 +23,7 @@ COPY src/ ./src/
 RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
     colcon build \
     --cmake-args -DCMAKE_BUILD_TYPE=Release \
-    --symlink-install \
-    --verbose   \
-    --event-handlers console_cohesion+  "
+    --symlink-install"
 
 # 步骤4：设置环境变量——容器启动自动加载ROS2基础环境+项目工作空间环境
 # 已有镜像可能未配置自动加载，此处补充，保证容器运行时无需手动source

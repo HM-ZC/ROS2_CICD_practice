@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.16)
 project(ros2_cicd)
 
 # 强制C++17（ROS2 Jazzy要求）
@@ -10,7 +10,15 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
-find_package(ament_cmake_gtest REQUIRED)
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
+
+  find_package(ament_cmake_gtest REQUIRED)
+
+  ament_add_gtest(test_xxx test/test_xxx.cpp)
+  target_link_libraries(test_xxx your_lib_target)
+endif()
 
 # 包含头文件目录
 include_directories(include)

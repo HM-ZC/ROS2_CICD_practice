@@ -91,10 +91,10 @@ jobs:
       - name: Run Docker container & execute ROS2 build + test
         run: |
           docker run --rm ros2_cicd:ci /bin/bash -c "
-            source /colcon_ws/install/setup.bash && \
-            colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release && \
-            colcon test --verbose && \
-            colcon test-result --verbose --all
+            source /opt/ros/jazzy/setup.bash
+            colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release 
+            colcon test 
+            colcon test-result --all
           "
 
       ########################################################################
