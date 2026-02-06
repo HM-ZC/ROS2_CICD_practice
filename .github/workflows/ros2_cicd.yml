@@ -57,8 +57,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          # 镜像名：ghcr.io/[GitHub用户名]/[项目名]（替换为你的项目名，小写！）
-          images: ghcr.io/${{ github.actor }}/ros2_cicd
+          images: ghcr.io/${{ github.repository_owner }}/ros2_cicd
           # 标签规则：Tag事件用标签名、Push用分支名+短CommitID、默认latest
           tags: |
             type=ref,event=tag
